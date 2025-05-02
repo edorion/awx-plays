@@ -1,0 +1,18 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Add ALB Listner Rule
+      shell: >
+        aws elbv2 Delete-rule --rule-arn {{ RuleARN }}
+      register: AddListnerResult
+      until: AddListnerResult is not failed
+      retries: 5

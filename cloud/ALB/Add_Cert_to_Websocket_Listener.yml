@@ -1,0 +1,18 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Add cert to websocket Listner
+      shell: >
+        aws elbv2 add-listener-certificates --listener-arn {{ websocketListnerARN }} --certificates CertificateArn={{ CertARN }}
+      register: NewWebsocketListner
+      until: NewWebsocketListner is not failed
+      retries: 5

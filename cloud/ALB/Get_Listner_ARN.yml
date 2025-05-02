@@ -1,0 +1,48 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Get ALB's
+      shell: >
+        aws elbv2 describe-load-balancers
+      register: LBdetails
+      until: LBdetails is not failed
+      retries: 5
+    - name: Get ALB arn by name
+      set_fact:
+        albARN: "{{ ((LBdetails.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "LoadBalancers[?DNSName.contains(@, '{{ ALB }}')].LoadBalancerArn"
+
+    - name: "Verify albARN"
+      debug:
+        msg: albARN:{{ albARN }}
+
+    - name: Get web Listner
+      shell: >
+        aws elbv2 describe-listeners --load-balancer-arn {{ albARN }}
+      register: listnerARN
+      until: listnerARN is not failed
+      retries: 5
+
+    - set_fact:
+        ListnerARN: "{{ ((listnerARN.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "Listeners[?to_number(Port) == to_number('{{ ListnerWeb }}')].ListenerArn"
+
+    - set_fact:
+        websocketListnerARN: "{{ ((listnerARN.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "Listeners[?to_number(Port) == to_number('{{ ListnerWebsocket }}')].ListenerArn"
+
+    - name: "Verify ListnerARN"
+      debug:
+        msg: ListnerARN:{{ ListnerARN }}

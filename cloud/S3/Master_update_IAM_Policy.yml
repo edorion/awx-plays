@@ -1,0 +1,7 @@
+
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+- import_playbook: ./tasks/Create_AWS_S3_Storage_User_Policy.yml

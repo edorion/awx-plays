@@ -1,0 +1,23 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Searches for a Cert ARN by Name
+  # Sets a CertARN fact with the arn as a string for re use
+  # variables to be passed:
+  # {{ SchoolCode }}
+  # {{ Domain }}
+
+  tasks:
+    - name: Get cert arn
+      command: >
+        aws acm list-certificates
+      register: CertList
+      until: CertList is not failed
+      retries: 5
+
+    - name: get ARN from response
+      set_fact:
+        CertARN: "{{ ((CertList.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "CertificateSummaryList[?DomainName.contains(@, '{{ SchoolCode }}.{{ Domain }}')].CertificateArn"

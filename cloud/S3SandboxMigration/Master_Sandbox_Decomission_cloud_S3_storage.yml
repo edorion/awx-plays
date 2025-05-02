@@ -1,0 +1,9 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# Remove S3 and IAM components
+- import_playbook: ./tasks/Delete_Sandbox_AWS_S3_User_Storage_Policy.yml
+- import_playbook: ./tasks/Delete_Sandbox_AWS_IAM_Programmatic.yml
+- import_playbook: ./tasks/Delete_Sandbox_AWS_S3_Bucket.yml

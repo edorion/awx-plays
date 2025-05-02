@@ -1,0 +1,27 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Get Target Group ARN
+      shell: >
+        aws elbv2 describe-target-groups
+      register: LBdetails
+      until: LBdetails is not failed
+      retries: 5
+
+    - set_fact:
+        GroupArn: "{{ ((LBdetails.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "TargetGroups[?TargetGroupName.contains(@, '{{ HTTPGoupName }}')].TargetGroupArn"
+
+    - name: GroupArn
+      debug:
+        msg: "{{ GroupArn }}"

@@ -1,0 +1,21 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# Required Variables
+  # {{ AWSregion }}   <--- The AWS region this is being done in
+  # {{ SchoolCode }}  <--- Schoolcode / sub domain
+  # {{ Domain }}      <--- Domain
+  # {{ ALB }}         <--- AWS load balanacer to attach to
+
+- import_playbook: ./ACM/GetCertARN.yml #Gets the ARN of the cert to be deleted
+- import_playbook: ./ACM/Get_Valiidation_Record_Details.yml # Gets the Valaidation details from the ARN
+- import_playbook: ./ALB/Delete_Cert_From_Web_Listener.yml
+- import_playbook: ./ALB/Delete_Cert_From_Websocket_Listener.yml
+- import_playbook: ./ALB/Get_Listner_ARN.yml
+- import_playbook: ./ALB/Get_Listner_Rule_ARN.yml
+- import_playbook: ./ALB/Delete_Listner_Rule.yml
+- import_playbook: ./Route53/Delete_Host_Record.yml #Deletes Host DNS Record
+- import_playbook: ./Route53/Delete_Dav_Record.yml #Deletes dav DNS record
+- import_playbook: ./Route53/Delete_ACM_Validation_Record.yml #Deletes Delete ACM Validation Record

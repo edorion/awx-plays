@@ -1,0 +1,18 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Add cert to web Listner
+      shell: >
+        aws elbv2 remove-listener-certificates --listener-arn {{ ListnerARN }} --certificates CertificateArn={{ CertARN }}
+      register: DelWebListnerCert
+      until: DelWebListnerCert is not failed
+      retries: 5

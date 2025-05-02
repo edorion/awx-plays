@@ -1,0 +1,10 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# for setup
+# you will need to manually retrieve creds from the Job log
+- import_playbook: ./tasks/Create_AWS_IAM_Programmatic.yml
+- import_playbook: ./tasks/Create_AWS_S3_Storage_User_Policy.yml
+- import_playbook: ./tasks/Create_AWS_S3_Bucket.yml

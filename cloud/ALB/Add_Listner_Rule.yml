@@ -1,0 +1,18 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  tasks:
+    - name: Add ALB Listner Rule
+      shell: >
+        aws elbv2 create-rule --listener-arn {{ ListnerARN }} --priority {{ Priority }} --conditions "[{\"Field\":\"host-header\",\"HostHeaderConfig\":{\"Values\":[\"{{ SchoolCode }}.{{ Domain }}\"]}}]" --actions Type=forward,TargetGroupArn={{ GroupArn }}
+      register: AddListnerResult
+      until: AddListnerResult is not failed
+      retries: 5

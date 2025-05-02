@@ -1,0 +1,26 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM DNS validation record
+  # variables to be passed:
+  # {{ Domain }}
+  # {{ CertName }}
+  # {{ CertType }}
+  # {{ CertValue }}
+
+  tasks:
+    - name: Create ACM validation record
+      route53:
+        state: present
+        zone: "{{ Domain }}"
+        record: "{{ CertName }}"
+        type: "{{ CertType }}"
+        ttl: 300
+        value: "{{ CertValue }}"
+        overwrite: yes
+        wait: yes
+      register: create_acm_record
+      until: create_acm_record is not failed
+      retries: 5
+      ignore_errors: yes

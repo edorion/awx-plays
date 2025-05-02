@@ -1,0 +1,14 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# Required Variables
+  # {{ AWSregion }}   <--- The AWS region this is being done in
+  # {{ SchoolCode }}  <--- Schoolcode / sub domain
+  # {{ Domain }}      <--- Domain
+  # {{ ALB }}         <--- AWS load balanacer to attach to
+
+- import_playbook: ./ALB/Get_Listner.yml
+- import_playbook: ./ALB/Get_next_priority.yml
+- import_playbook: ./ALB/Get_Target_Group_ARN.yml

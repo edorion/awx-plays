@@ -1,0 +1,30 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # Returns:
+  # {{ CertARN }}
+
+  tasks:
+    - name: Create Cert
+      command: >
+        aws acm request-certificate --domain-name {{ SchoolCode }}.{{ Domain }} --validation-method DNS --idempotency-token {{ 99999 |random(seed=SchoolCode) }}
+      register: create_cert
+      until: create_cert is not failed
+      retries: 5
+
+    - name: sleep for 20 seconds to allow record to create
+      wait_for:
+        timeout: 20
+
+    - set_fact:
+        CertARN: "{{ (create_cert.stdout | from_json).CertificateArn }}"
+
+    - name: "Verify ARN"
+      debug:
+        msg: "ARN: {{ CertARN }}"

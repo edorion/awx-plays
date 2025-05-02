@@ -1,0 +1,21 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new S3 policy with prefix per user
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ IAMuserName }}
+
+  tasks:
+    - name: Create S3 policy from template
+      iam_policy:
+        iam_type: user
+        iam_name: S3.{{ SchoolCode }}
+        policy_name: "S3.userpolicy.{{ SchoolCode }}"
+        state: present
+        policy_json: "{{ lookup( 'template', '../templates/storage/s3_policy.json.j2') }}"
+      register: create_policy
+      until: create_policy is not failed
+      retries: 5

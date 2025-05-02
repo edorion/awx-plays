@@ -1,0 +1,35 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new S3 bucket with prefix per user
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+
+  tasks:
+    - name: Create a bucket
+      s3_bucket:
+        name: sbx.{{ AWSregion }}.{{ SchoolCode }}
+        region: "{{ AWSregion }}"
+        encryption: "AES256"
+        tags:
+          sbx: sbx
+          SchoolCode: "{{ SchoolCode }}"
+      register: create_bucket
+      until: create_bucket is not failed
+      retries: 5
+
+  post_tasks:
+    - name: Set permissions
+      command: >
+        aws s3api put-public-access-block --bucket sbx.{{ AWSregion }}.{{ SchoolCode }} --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+      register: set_perms
+      until: set_perms is not failed
+      retries: 5
+    - name: Set Lifecycle
+      command: >
+        aws s3api put-bucket-lifecycle-configuration --bucket sbx.{{ AWSregion }}.{{ SchoolCode }} --lifecycle-configuration="{\"Rules\":[{\"ID\":\"Move all files to Intelligent - Tiering\",\"Status\":\"Enabled\",\"Prefix\":\"\",\"Transitions\":[{\"Days\":0,\"StorageClass\":\"INTELLIGENT_TIERING\"}]}]}"
+      register: set_live
+      until: set_live is not failed
+      retries: 5

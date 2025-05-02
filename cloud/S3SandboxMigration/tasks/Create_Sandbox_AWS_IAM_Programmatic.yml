@@ -1,0 +1,22 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a IAM programatic users
+  # variables to be passed:
+  # {{ IAMuserName }}
+
+  tasks:
+  - name: Create new IAM programatic access users with API keys
+    iam:
+      iam_type: user
+      name: S3.{{ SchoolCode }}
+      state: present
+      access_key_state: create
+    register: IAMuserSecretKey
+    until: IAMuserSecretKey is not failed
+    retries: 5
+
+  - name: "Verify user Key and Secret"
+    debug:
+      msg: "Key: {{ IAMuserSecretKey.user_meta.access_keys[0].access_key_id }} Secret: {{ IAMuserSecretKey.user_meta.access_keys[0].secret_access_key }}"

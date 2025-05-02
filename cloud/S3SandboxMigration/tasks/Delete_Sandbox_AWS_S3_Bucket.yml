@@ -1,0 +1,19 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new S3 bucket with prefix per user
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+
+  tasks:
+    - name: Delete S3 bucket
+      s3_bucket:
+        name: sbx.{{ AWSregion }}.{{ SchoolCode }}
+        region: "{{ AWSregion }}"
+        state: absent
+        force: yes
+      register: create_bucket
+      until: create_bucket is not failed
+      retries: 5

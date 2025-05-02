@@ -1,0 +1,15 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# for setup
+- import_playbook: ./tasks/Create_AWS_IAM_Programmatic.yml
+- import_playbook: ./tasks/Create_AWS_S3_Storage_User_Policy.yml
+- import_playbook: ./tasks/Create_AWS_S3_Bucket.yml
+- import_playbook: ./tasks/Write_S3_Credentials_to_RDS.yml
+- import_playbook: ./tasks/Run_Schoolbox_S3_Migration.yml
+
+# for enable and cutover
+- import_playbook: ./tasks/Enable_S3_via_RDS.yml
+- import_playbook: ./tasks/Run_Schoolbox_S3_Migration.yml

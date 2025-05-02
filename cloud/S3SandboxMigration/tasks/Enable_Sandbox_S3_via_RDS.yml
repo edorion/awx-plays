@@ -1,0 +1,17 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+# NOTE: this cant be run independently and only against Live isntances
+# This is dependent on IAMuserSecretKey variable being created by the Create_AWS_IAM_Programmatic.yml
+# It is inteded to connect to an existing DB and enable AWS S3 (configured) for use as the storage source
+# Variables to be passed:
+# {{ DBHost }}
+# {{ DBPass }}
+# {{ DBUser}}
+# {{ InstanceID }}
+
+  tasks:
+  - name: "Enable S3"
+    shell: |
+      mysql -h {{ DBHost }} -u {{ DBUser}} -p{{ DBPass }} sandbox_{{ SchoolCode }} -BNe "update config set value='awsS3' where name='otfs_adapter';"

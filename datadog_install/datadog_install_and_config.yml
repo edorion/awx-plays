@@ -1,0 +1,106 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  pre_tasks:
+  # ensure name=python-mysqldb is installed
+  - name: install python mysql bindings
+    apt: name=python3-mysqldb state=present
+  - name: Get site_hostname
+    shell: mysql appdb -Ns -e "select value from config where name = 'site_hostname';"
+    register: find_hostname
+  - name: Get site_domain
+    shell: mysql appdb -Ns -e "select value from config where name = 'site_domain';"
+    register: find_domain
+  roles:
+    - { role: datadog.datadog, become: yes }
+  vars:
+    datadog_api_key: "****************"
+    datadog_agent_major_version: "7"
+    datadog_config:
+      tags: "live: {{ inventory_hostname }}"
+      log_level: INFO
+      logs_enabled: true
+      hostname: "{{ inventory_hostname }}"
+    datadog_checks:
+      tls:
+        instances:
+          - name: "{{ inventory_hostname }} tls check"
+            server: localhost
+            server_hostname: "{{ find_hostname.stdout }}.{{ find_domain.stdout }}"
+            validate_cert: false
+            days_warning: 12.0
+            days_critical: 7.0
+      http:
+      http_check:
+      mysql:
+        instances:
+          - server: localhost
+            user: datadog
+            pass: "*************"
+        logs:
+          - type: file
+            path: "/var/log/mysql/mariadb-slow.log"
+            source: mysql
+            service: "mariadb.service"
+            log_processing_rules:
+            - type: multi_line
+              name: new_slow_query_log_entry
+              pattern: "# Time:"
+              # If mysqld was started with `--log-short-format`, use:
+              # pattern: "# Query_time:"
+          - type: journald
+            include_units:
+              - mariadb.service
+            source: mysql
+            service: "mariadb.service"
+
+      nginx:
+        instances:
+          - nginx_status_url: http://localhost:88/nginx_status/
+
+      disk:
+        init_config: null
+        instances:
+          - excluded_filesystems:
+            - tmpfs
+            - none
+            - shm
+            - nsfs
+            - netns
+            - overlay
+            use_mount: false
+      puppet:
+        agent:
+          - report: true
+      php_fpm:
+        instances:
+          - status_url: unix:///run/php/app.sock/fpm-status
+            ping_url: unix:///run/php/app.sock/ping
+            ping_reply: pong
+            use_fastcgi: true
+      redisdb:
+        init_config:
+        instances:
+          - host: localhost
+            port: 6379
+      logs:
+        logs:
+          - type: journald
+            include_units:
+              - nginx.service
+              - redis-server.service
+              - rabbitmq-server.service
+              - certbot.service
+#              - schoolbox-socketd.service
+              - systemd-resolved.service
+          - type: file
+            path: /var/log/app/upgrade.log
+            service: app-upgrade
+            source: app
+  post_tasks:
+    - name: Set DataDog Agent permissions
+      shell: usermod -a -G adm,systemd-journal,syslog,www-data,redis dd-agent
+    - name: Create datadog user
+      mysql_user: user=datadog password=*********** priv=*.*:SELECT,PROCESS state=present

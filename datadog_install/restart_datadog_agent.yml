@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: false
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Restart service datadog-agent, in all cases
+      service:
+        state: restarted
+        name: datadog-agent

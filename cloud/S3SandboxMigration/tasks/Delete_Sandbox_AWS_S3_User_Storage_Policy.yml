@@ -1,0 +1,20 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new S3 policy with prefix per user
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ IAMuserName }}
+
+  tasks:
+    - name: Remove S3 policy
+      iam_policy:
+        iam_type: user
+        iam_name: S3.{{ SchoolCode }}
+        policy_name: "S3.userpolicy.{{ SchoolCode }}"
+        state: absent
+      register: create_policy
+      until: create_policy is not failed
+      retries: 5

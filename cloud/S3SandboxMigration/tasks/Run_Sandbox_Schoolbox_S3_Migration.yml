@@ -1,0 +1,16 @@
+---
+- hosts: "{{ Cloud_app }}"
+#  become: yes
+#  become_method: su
+#  become_user: root
+
+
+  gather_facts: false
+  # To be run on the host being migrated.
+  # Requires S3 to have been created and config's in the DB first
+
+  tasks:
+    - name: Run the Schoolbox S3 migration script
+      shell: |
+        /mnt/data/www/demo_{{ SchoolCode }}/tools/s3-migration.php -p -vvv
+      ignore_errors: yes

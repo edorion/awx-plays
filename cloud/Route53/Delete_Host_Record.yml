@@ -1,0 +1,28 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new DNS Host record
+  # variables to be passed:
+  # {{ Domain }}
+  # {{ SchoolCode }}
+
+  tasks:
+    - name: Delete dav record
+      # Retrieve the details for new.foo.com
+      route53:
+        state: get
+        zone: "{{ Domain }}"
+        record: "{{ SchoolCode }}"
+        type: CNAME
+        register: rec
+
+    - name: Delete ACM validation record
+      # Delete new.foo.com A record using the results from the get command
+      route53:
+        state: absent
+        zone: "{{ Domain }}"
+        record: "{{ rec.set.record }}"
+        ttl: "{{ rec.set.ttl }}"
+        type: "{{ rec.set.type }}"
+        value: "{{ rec.set.value }}"

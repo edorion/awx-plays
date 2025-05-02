@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: False
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: force renew letsencrypt cert live
+      shell: certbot renew --force-renewal --webroot-path /usr/share/schoolbox/www

@@ -1,0 +1,22 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Gets a Listner Rule ARN
+  # variables to be passed:
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ListnerARN }}  <---- this is retrieved from Get_Listner.yml which must be run first
+
+  tasks:
+    - name: Get Listner Rule
+      shell: >
+        aws elbv2 describe-rules --listener-arn {{ ListnerARN }}
+      register: ListnerRuleARN
+      until: ListnerRuleARN is not failed
+      retries: 5
+
+    - set_fact:
+        RuleARN: "{{ ((ListnerRuleARN.stdout | from_json) | json_query(query))[0] }}"
+      vars:
+        query: "Rules[?(@.Conditions[?(@.Values[0]=='{{ SchoolCode }}.{{ Domain }}')])].RuleArn"

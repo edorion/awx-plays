@@ -1,0 +1,23 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+# Required Variables
+  # {{ AWSregion }}   <--- The AWS region this is being done in
+  # {{ SchoolCode }}  <--- Schoolcode / sub domain
+  # {{ Domain }}      <--- Domain
+  # {{ ALB }}         <--- AWS load balanacer to attach to
+
+- import_playbook: ./ACM/Request_Schoolbox_Public_Certificate.yml # Initiate the cert (returns an ARN)
+- import_playbook: ./ACM/Get_Valiidation_Record_Details.yml # Gets the Valaidation details from the ARN
+- import_playbook: ./Route53/Create_Host_Record.yml # create the DNS host record
+- import_playbook: ./Route53/Create_Dav_Record.yml # create the DNS dav record
+- import_playbook: ./Route53/Create_ACM_Validation_Record.yml # create the DNS validation record
+#- import_playbook: ./ACM/Request_Schoolbox_Public_Certificate.yml # Retry cert to validate
+- import_playbook: ./ALB/Get_Listner_ARN.yml
+- import_playbook: ./ALB/Get_next_priority.yml
+- import_playbook: ./ALB/Get_Target_Group_ARN.yml
+- import_playbook: ./ALB/Add_Cert_to_Web_Listener.yml
+- import_playbook: ./ALB/Add_Cert_to_Websocket_Listener.yml
+- import_playbook: ./ALB/Add_Listner_Rule.yml

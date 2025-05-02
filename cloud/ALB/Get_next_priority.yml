@@ -1,0 +1,32 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new ACM public cert
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ SchoolCode }}
+  # {{ Domain }}
+  # {{ ALB }}
+
+  vars:
+    PriorityList: [10]
+
+  tasks:
+    - name: Get Target Group ARN
+      shell: >
+        aws elbv2 describe-rules --listener-arn {{ ListnerARN }}
+      register: RuleCount
+      until: RuleCount is not failed
+      retries: 5
+    - set_fact:
+        Priorities: "{{ (RuleCount.stdout | from_json).Rules | map(attribute='Priority') | reject('search','default') | list }}"
+    - set_fact:
+        PriorityList: "{{ PriorityList + [item | int] }}"
+      with_items: "{{ Priorities }}"
+    - set_fact:
+        Priority: "{{ (PriorityList | max)+1 }}"
+
+    - name: Debug
+      debug:
+        msg: PriorityList={{ PriorityList }}

@@ -1,0 +1,28 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Retrieves the validation record for a cert DNS validation
+  # Variables to be passed:
+  # {{ CertARN }}
+  # Facts set / returned to be used with ../Route53/cCreate_Record_for_ACM.yml:
+  # {{ CertName }}
+  # {{ CertValue }}
+  # {{ CertName }}
+
+  tasks:
+    - name: Create Cert
+      shell: >
+        aws acm describe-certificate --certificate-arn {{ CertARN }}
+      register: CertDetails
+      until: CertDetails is not failed
+      retries: 5
+
+    - set_fact:
+        CertName: "{{ (CertDetails.stdout | from_json).Certificate.DomainValidationOptions[0].ResourceRecord.Name }}"
+        CertType: "{{ (CertDetails.stdout | from_json).Certificate.DomainValidationOptions[0].ResourceRecord.Type }}"
+        CertValue: "{{ (CertDetails.stdout | from_json).Certificate.DomainValidationOptions[0].ResourceRecord.Value }}"
+
+    - name: "Verify required CNAMES"
+      debug:
+        msg: "Values: {{ CertName }}, {{ CertType }}, {{ CertValue }}"

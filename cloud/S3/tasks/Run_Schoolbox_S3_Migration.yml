@@ -1,0 +1,11 @@
+---
+- hosts: "{{ Cloud_app }}"
+  gather_facts: false
+  # To be run on the host being migrated.
+  # Requires S3 to have been created and config's in the DB first
+
+  tasks:
+    - name: Run the Schoolbox S3 migration script
+      shell: |
+        INSTANCE_ID={{ InstanceID }} /usr/share/schoolbox/tools/s3-migration.php -p -vvv
+      ignore_errors: yes

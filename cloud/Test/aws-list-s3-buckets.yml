@@ -1,0 +1,17 @@
+---
+- hosts: all
+  remote_user: root
+  gather_facts: False
+
+  # Lists all s3 buckets
+  # variables to be passed:
+  # {{ AWSregion }}
+  # {{ InstanceID }}
+
+  tasks:
+    - aws_s3_bucket_info:
+      register: result
+
+    - name: List buckets
+      debug:
+        msg: "{{ result['buckets'] }}"

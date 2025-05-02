@@ -1,0 +1,24 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new DNS Dav record
+  # variables to be passed:
+  # {{ Domain }}
+  # {{ SchoolCode }}
+
+  tasks:
+    - name: Create dav Record
+      route53:
+        state: present
+        zone: "{{ Domain }}"
+        record: "{{ SchoolCode }}-dav.{{ Domain }}"
+        type: CNAME
+        ttl: 300
+        value: "{{ SchoolCode }}.{{ Domain }}"
+        overwrite: yes
+        wait: yes
+      register: create_dav_record
+      until: create_dav_record is not failed
+      retries: 5
+      ignore_errors: yes

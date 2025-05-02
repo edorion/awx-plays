@@ -1,0 +1,26 @@
+{
+	"type": "query alert",
+	"query": "xxxxxxxxxx",
+	"name": "yyyyyyyyyy root disk is running out of space",
+	"message": "{{#is_alert}} To fix this, follow these steps:\n\n1. Verify available disk:\n\n2. Escalate to L2 or L3 to investigate further as something has probably gone wrong\n\n{{/is_alert}}\n\n{{#is_recovery}} The host is again safe! {{/is_recovery}}\n\nNotify: @zendesk",
+	"tags": [],
+	"options": {
+		"notify_audit": false,
+		"locked": false,
+		"timeout_h": 0,
+		"new_host_delay": 300,
+		"require_full_window": true,
+		"notify_no_data": false,
+		"renotify_interval": "0",
+		"escalation_message": "",
+		"no_data_timeframe": null,
+		"include_tags": true,
+		"thresholds": {
+			"critical": 3000000000,
+			"warning": 3500000000,
+			"critical_recovery": 3500000000,
+			"warning_recovery": 4000000000
+		}
+	},
+	"restricted_roles": null
+}

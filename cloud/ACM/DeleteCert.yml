@@ -1,0 +1,19 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Deletes a cert via arn
+  # variables to be passed:
+  # {{ CertARN }}  <-- retrievable from "GetCertARN.yml"
+
+  tasks:
+    - name: Delete Cert
+      command: >
+        aws acm delete-certificate --certificate-arn {{ CertARN }}
+      register: delete_cert
+      until: delete_cert is not failed
+      retries: 5
+
+    - name: "show delete result"
+      debug:
+        msg: "result: {{ delete_cert }}"

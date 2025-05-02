@@ -1,0 +1,30 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Delete an ACM DNS validation record
+  # variables to be passed:
+  # {{ Domain }}
+  # {{ CertName }}
+  # {{ CertType }}
+  # {{ CertValue }}
+
+  tasks:
+    - name: Delete ACM validation record
+      # Retrieve the details for new.foo.com
+      route53:
+        state: get
+        zone: "{{ Domain }}"
+        record: "{{ CertName }}"
+        type: "{{ CertType }}"
+        register: rec
+
+    - name: Delete ACM validation record
+      # Delete new.foo.com A record using the results from the get command
+      route53:
+        state: absent
+        zone: "{{ Domain }}"
+        record: "{{ rec.set.record }}"
+        ttl: "{{ rec.set.ttl }}"
+        type: "{{ rec.set.type }}"
+        value: "{{ rec.set.value }}"

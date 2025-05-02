@@ -1,0 +1,24 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a new DNS Host record
+  # variables to be passed:
+  # {{ Domain }}
+  # {{ SchoolCode }}
+
+  tasks:
+    - name: Create host Record
+      route53:
+        state: present
+        zone: "{{ Domain }}"
+        record: "{{ SchoolCode }}.{{ Domain }}"
+        type: CNAME
+        ttl: 300
+        value: "{{ ALB }}"
+        overwrite: yes
+        wait: yes
+      register: create_host_record
+      until: create_host_record is not failed
+      retries: 5
+      ignore_errors: yes

@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: false
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Reload service nginx
+      service:
+        state: reloaded
+        name: nginx

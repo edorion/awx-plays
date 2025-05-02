@@ -1,0 +1,17 @@
+---
+- hosts: aws-cli
+  gather_facts: False
+
+  # Create a IAM programatic users
+  # variables to be passed:
+  # {{ IAMuserName }}
+
+  tasks:
+  - name: Delete IAM programatic access users
+    iam:
+      iam_type: user
+      name: S3.{{ SchoolCode }}
+      state: absent
+    register: IAMuserSecretKey
+    until: IAMuserSecretKey is not failed
+    retries: 5
